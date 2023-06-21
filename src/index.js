@@ -33,7 +33,7 @@ function getLocation() {
   return `${currentWeather.name}, ${currentWeather.country}`;
 }
 
-function getForecast() {
+function getCondition() {
   return currentWeather.condition.text;
 }
 
@@ -59,10 +59,17 @@ function getHumidity() {
   return `${currentWeather.humidity}%`;
 }
 
+function returnFormattedForecast() {
+  return {
+    location: getLocation(),
+    condition: getCondition(),
+    humidity: getHumidity(),
+  };
+}
 // use an async function to work with the returned promises from the api
 async function requestWeatherData() {
   // format user given string (although it may be better to do so in the DOM file)
-  const weatherData = await api.getWeatherData('campana');
+  const weatherData = await api.getWeatherData('buenos aires');
   if (weatherData instanceof Error) {
     console.log('implement error state for user', weatherData);
   } else {
@@ -70,11 +77,8 @@ async function requestWeatherData() {
     // create a flatten object recursive function to avoid hardcoding this
     const trimmed = trimData({ ...weatherData.location, ...weatherData.current });
     currentWeather = trimmed;
-    console.log(getLocation());
-    console.log(getForecast());
+    console.log(returnFormattedForecast());
     console.log(getDataMetric());
-    console.log(getDataImperial());
-    console.log(getHumidity());
   }
 }
 
