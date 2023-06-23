@@ -1,7 +1,9 @@
 import * as app from './app';
+import './style.css';
 
 const cardContainer = document.querySelector('.card-container');
 const currentUnits = 'metric';
+const locationForm = document.querySelector('.location-form');
 
 function createWeatherCard(data) {
   // creates a card with the requested information to display
@@ -35,14 +37,25 @@ function createWeatherCard(data) {
   return cardElement;
 }
 
-async function requestData(location) {
-  const data = await app.requestWeatherData(location);
+function postCard(weatherCard) {
+  const cardsDisplayed = cardContainer.querySelectorAll('.weather-card');
+  if (cardsDisplayed.length) {
+    Array.from(cardsDisplayed).forEach((card) => card.remove());
+  }
+
+  cardContainer.appendChild(weatherCard);
+}
+
+locationForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const locationInputData = document.getElementById('location-input-field').value;
+  const data = await app.requestWeatherData(locationInputData);
+
+  console.log(data);
   if (data instanceof Error) {
     cardContainer.textContent = data.message;
   } else {
     const weatherCard = createWeatherCard(data);
-    cardContainer.appendChild(weatherCard);
+    postCard(weatherCard);
   }
-}
-
-requestData('buenos aires');
+});
