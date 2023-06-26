@@ -2,8 +2,16 @@ import * as app from './app';
 import './style.css';
 
 const cardContainer = document.querySelector('.card-container');
-const currentUnits = 'metric';
 const locationForm = document.querySelector('.location-form');
+const error = document.querySelector('.error');
+const unitSwitchButton = document.querySelector('.unit-switch-button');
+
+let currentUnits = 'metric';
+
+function showError(message) {
+  error.textContent = message;
+  error.classList.remove('hidden');
+}
 
 function createWeatherCard(data) {
   // creates a card with the requested information to display
@@ -11,20 +19,20 @@ function createWeatherCard(data) {
         <div class="location">${data.location}</div>
         <div class="condition">${data.condition}</div>
         <div class="forecast-data">
-            <div class="temperature">${data.temp}</div>
-            <div class="additional-data">
-                <div class="feelslike">
+            <div class="temperature-display">${data.temp}</div>
+            <div class="additional-data-container">
+                <div class="feelslike additional-data">
                     <div class="feelslike-text">FEELSLIKE:</div>
-                    <div class="feelslike-data">${data.feelsLike}</div>
+                    <div class="feelslike-display">${data.feelsLike}</div>
                 </div>
-                <div class="humidity">
+                <div class="humidity additional-data">
                     <div class="humidity-text">HUMIDITY:</div>
-                    <div class="humidity-data">${data.humidity}</div>
+                    <div class="humidity-display">${data.humidity}</div>
                 </div>
-                <div class="wind">
+                <div class="wind additional-data">
                     <div class="wind-text">WIND:</div>
-                    <div class="wind-speed">${data.windSpeed}</div>
-                    <div class="wind-dir">${data.windDir}</div>
+                    <div class="wind-speed-display">${data.windSpeed}</div>
+                    <div class="wind-dir-display">${data.windDir}</div>
                 </div>
             </div>
         </div>
@@ -46,16 +54,43 @@ function postCard(weatherCard) {
   cardContainer.appendChild(weatherCard);
 }
 
-locationForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const locationInputData = document.getElementById('location-input-field').value;
-  const data = await app.requestWeatherData(locationInputData);
+async function handleRequest(location) {
+  const data = await app.requestWeatherData(location, currentUnits);
 
-  console.log(data);
   if (data instanceof Error) {
-    cardContainer.textContent = data.message;
+    showError(data.message);
   } else {
+    error.classList.add('hidden');
     const weatherCard = createWeatherCard(data);
     postCard(weatherCard);
   }
+}
+
+function switchUnits() {
+  currentUnits = (currentUnits === 'metric') ? 'imperial' : 'metric';
+}
+
+function updateUnitData() {
+  const temperatureDisplay = document.querySelector('.temperature-display');
+  const feelslikeDisplay = document.querySelector('.feelslike-display');
+  const windSpeedDisplay = document.querySelector('.wind-speed-display');
+
+  const newData = app.getFormattedData(currentUnits);
+
+  temperatureDisplay.textContent = newData.temp;
+  feelslikeDisplay.textContent = newData.feelsLike;
+  windSpeedDisplay.textContent = newData.windSpeed;
+}
+
+locationForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const locationInputData = document.getElementById('location-input-field').value;
+  handleRequest(locationInputData);
 });
+
+unitSwitchButton.addEventListener('click', () => {
+  switchUnits();
+  console.log(currentUnits);
+  console.log(updateUnitData());
+});
+handleRequest('buenos aires');
