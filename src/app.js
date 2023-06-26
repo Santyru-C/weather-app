@@ -37,55 +37,60 @@ function formatCondition() {
   return currentWeather.condition.text;
 }
 
-function getDataMetric() {
+function formatDataMetric() {
   return {
     temp: `${Math.round(currentWeather.temp_c)} C°`,
     feelsLike: `${Math.round(currentWeather.feelslike_c)} C°`,
     windSpeed: `${Math.round(currentWeather.wind_kph)} km/h`,
-    windDir: currentWeather.wind_dir,
   };
 }
 
-function getDataImperial() {
+function formatDataImperial() {
   return {
-    temp: Math.round(currentWeather.temp_f),
-    feelsLike: Math.round(currentWeather.feelslike_f),
-    windSpeed: Math.round(currentWeather.wind_mph),
-    windDir: currentWeather.wind_dir,
+    temp: `${Math.round(currentWeather.temp_f)} F°`,
+    feelsLike: `${Math.round(currentWeather.feelslike_f)} F°`,
+    windSpeed: `${Math.round(currentWeather.wind_mph)} mph`,
   };
+}
+
+function getFormattedData(units) {
+  return (units === 'metric') ? formatDataMetric() : formatDataImperial();
 }
 
 function formatHumidity() {
   return `${currentWeather.humidity}%`;
 }
 
-function getFormattedForecast() {
+function getWindDir() {
+  return currentWeather.wind_dir;
+}
+
+function getFormattedForecast(units = 'metric') {
+  const data = getFormattedData(units);
   return {
     location: formatLocation(),
     condition: formatCondition(),
     humidity: formatHumidity(),
+    windDir: getWindDir(),
+    ...data,
   };
 }
 
 // use an async function to work with the returned promises from the api
-async function requestWeatherData(location) {
+async function requestWeatherData(location, units) {
   // format user given string (although it may be better to do so in the DOM file)
   const weatherData = await api.getWeatherData(location);
   if (weatherData instanceof Error) {
-    return new Error('Implement Error State');
+    return weatherData;
   }
-  console.log('implement success state');
   // create a flatten object recursive function to avoid hardcoding this
   const trimmed = trimData({ ...weatherData.location, ...weatherData.current });
   currentWeather = trimmed;
-  return { ...getFormattedForecast(), ...getDataMetric() };
+  return getFormattedForecast(units);
 }
-
-// seguir mañana con el DOM
 
 export {
   getFormattedForecast,
-  getDataImperial,
-  getDataMetric,
+  getFormattedData,
   requestWeatherData,
 };
